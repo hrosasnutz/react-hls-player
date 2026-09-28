@@ -57,6 +57,75 @@
 	object-fit: contain;
 }
 
+.quality-panel {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 20px;
+	padding: 15px 20px;
+	border-top: 1px solid #e4ebe7;
+	background: #f8faf8;
+}
+
+.quality-copy,
+.quality-picker {
+	display: flex;
+	align-items: center;
+	gap: 12px;
+}
+
+.quality-icon {
+	display: grid;
+	width: 38px;
+	height: 38px;
+	flex: 0 0 38px;
+	place-items: center;
+	border: 1px solid #d5e2db;
+	border-radius: 7px;
+	background: #fff;
+	color: #3b8065;
+	font-size: 1.1rem;
+}
+
+.quality-label {
+	display: block;
+	margin-bottom: 2px;
+	color: #26352f;
+	font-size: 0.9rem;
+	font-weight: 700;
+}
+
+.quality-hint {
+	margin: 0;
+	color: #718078;
+	font-size: 0.78rem;
+}
+
+.quality-picker {
+	justify-content: flex-end;
+}
+
+.quality-select {
+	width: 220px;
+	min-height: 40px;
+	border-color: #cbd8d1;
+	border-radius: 6px;
+	color: #26352f;
+	font-size: 0.875rem;
+}
+
+.quality-select:focus {
+	border-color: #52836e;
+	box-shadow: 0 0 0 0.2rem rgb(59 128 101 / 16%);
+}
+
+.quality-active {
+	min-width: 120px;
+	color: #64736c;
+	font-size: 0.78rem;
+	text-align: right;
+}
+
 .player-controls {
 	min-height: 76px;
 	padding: 14px 20px;
@@ -119,6 +188,21 @@
 	.player-controls {
 		min-height: 68px;
 		padding: 12px;
+	}
+
+	.quality-panel {
+		align-items: stretch;
+		flex-direction: column;
+		gap: 14px;
+		padding: 14px 12px;
+	}
+
+	.quality-picker {
+		justify-content: space-between;
+	}
+
+	.quality-select {
+		width: min(220px, 60%);
 	}
 
 	.btn-player {
