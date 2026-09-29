@@ -2,11 +2,15 @@ import Hls from "hls.js";
 import { useCallback, useRef, useState } from "react";
 import NativeVideoPlayer from "./players/NativeVideoPlayer";
 import HlsVideoPlayer from "./players/HlsVideoPlayer";
+import PlayButton from "./controls/PlayButton";
+import QualityDropdown from "./controls/QualityDropdown";
+import SoundBar from "./controls/SoundBar";
 
 function VideoPlayer({ url }) {
   const playerRef = useRef(null);
   const [playing, setPlaying] = useState(false);
 
+  // VARIABLES FOR QUALITY CONTROL
   const [levels, setLevels] = useState([]);
   const [selectedLevel, setSelectedLevel] = useState(-1);
   const [activeLevel, setActiveLevel] = useState(-1);
@@ -16,7 +20,20 @@ function VideoPlayer({ url }) {
   const handleActiveLevel = useCallback((level) => {
     setActiveLevel(level);
   }, []);
-  const activeQuality = levels.find((level) => level.index === activeLevel);
+
+  function handleQualitySelected(level) {
+    setSelectedLevel(level);
+  }
+
+  // VARIABLES FOR SOUND CONTROL
+  const [soundSelected, setSoundSelected] = useState(1);
+
+  function handleSoundChange(volume) {
+    setSoundSelected(volume);
+    if (playerRef.current) {
+      playerRef.current.volume = volume;
+    }
+  }
 
   async function handlePlay() {
     const video = playerRef.current;
@@ -40,6 +57,7 @@ function VideoPlayer({ url }) {
       <div className="player-stage">
         {Hls.isSupported() ? (
           <HlsVideoPlayer
+            native={false}
             playerRef={playerRef}
             url={url}
             selectedLevel={selectedLevel}
@@ -52,61 +70,27 @@ function VideoPlayer({ url }) {
             url={url}
           ></NativeVideoPlayer>
         )}
-      </div>
-      {Hls.isSupported() && (
-        <section className="quality-panel" aria-label="Calidad de reproducción">
-          <div className="quality-copy">
-            <span className="quality-icon" aria-hidden="true">
-              <i className="bi bi-display"></i>
-            </span>
-            <div>
-              <label className="quality-label" htmlFor="quality">
-                Calidad
-              </label>
-              <p className="quality-hint">
-                {levels.length
-                  ? "Elige una resolución o deja que se ajuste automáticamente."
-                  : "Buscando resoluciones disponibles..."}
-              </p>
-            </div>
-          </div>
-          <div className="quality-picker">
-            <select
-              id="quality"
-              className="form-select quality-select"
-              value={selectedLevel}
-              disabled={!levels.length}
-              onChange={(event) => setSelectedLevel(Number(event.target.value))}
-            >
-              <option value={-1}>Automática</option>
-              {levels.map((level) => (
-                <option key={level.index} value={level.index}>
-                  {level.height}p ({Math.round(level.bitrate / 1000)} kbps)
-                </option>
-              ))}
-            </select>
-            <span className="quality-active" aria-live="polite">
-              {activeQuality ? `Activa: ${activeQuality.height}p` : "Esperando video"}
-            </span>
-          </div>
-        </section>
-      )}
-      <div className="player-controls d-flex align-items-center justify-content-between">
-        <span className="player-format">
-          <i className="bi bi-broadcast" aria-hidden="true"></i>
-          <span>Streaming HLS</span>
-        </span>
-        <button
-          className="btn btn-player d-inline-flex align-items-center gap-2"
-          onClick={handlePlay}
-          aria-label={playing ? "Pausar video" : "Reproducir video"}
+        <div
+          className="player-control-overlay"
+          role="group"
+          aria-label="Controles del video"
         >
-          <i
-            className={`bi ${playing ? "bi-pause-fill" : "bi-play-fill"}`}
-            aria-hidden="true"
-          ></i>
-          <span>{playing ? "Pausar" : "Reproducir"}</span>
-        </button>
+          <div className="player-control-group">
+            <PlayButton playing={playing} onPlay={handlePlay}></PlayButton>
+            <SoundBar
+              soundSelected={soundSelected}
+              onSoundChange={handleSoundChange}
+            ></SoundBar>
+          </div>
+          {Hls.isSupported() && (
+            <QualityDropdown
+              levels={levels}
+              activeLevel={activeLevel}
+              selectedLevel={selectedLevel}
+              onSelectedLevel={handleQualitySelected}
+            ></QualityDropdown>
+          )}
+        </div>
       </div>
     </section>
   );

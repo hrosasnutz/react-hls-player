@@ -2,11 +2,12 @@ import Hls from "hls.js";
 import { useEffect, useRef } from "react";
 
 function HlsVideoPlayer({
+  native,
   url,
   playerRef,
   onLevels,
   onActiveLevel,
-  selectedLevel,
+  selectedLevel
 }) {
   const hlsRef = useRef(null);
 
@@ -14,10 +15,11 @@ function HlsVideoPlayer({
     const video = playerRef.current;
     if (!video) return;
 
-    //if (video.canPlayType("application/vnd.apple.mpegurl")) {
-      //video.src = url;
-      //return;
-    //}
+    if (native 
+      && video.canPlayType("application/vnd.apple.mpegurl")) {
+      video.src = url;
+      return;
+    }
 
     const hls = new Hls();
     hlsRef.current = hls;
@@ -42,7 +44,7 @@ function HlsVideoPlayer({
       hlsRef.current = null;
       hls.destroy();
     };
-  }, [url, playerRef, onLevels, onActiveLevel]);
+  }, [native, url, playerRef, onLevels, onActiveLevel]);
 
   useEffect(() => {
     if (hlsRef.current?.levels.length) {
