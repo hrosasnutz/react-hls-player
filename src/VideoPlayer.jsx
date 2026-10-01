@@ -5,10 +5,12 @@ import HlsVideoPlayer from "./players/HlsVideoPlayer";
 import PlayButton from "./controls/PlayButton";
 import QualityDropdown from "./controls/QualityDropdown";
 import SoundBar from "./controls/SoundBar";
+import TimeBar from "./controls/TimeBar";
 
 function VideoPlayer({ url }) {
   const playerRef = useRef(null);
   const [playing, setPlaying] = useState(false);
+  const [playFeedback, setPlayFeedback] = useState(null);
 
   // VARIABLES FOR QUALITY CONTROL
   const [levels, setLevels] = useState([]);
@@ -35,6 +37,17 @@ function VideoPlayer({ url }) {
     }
   }
 
+  // VARIABLES FOR DURATION CONTROL
+  const [timeSelected, setTimeSelected] = useState(0);
+  const [duration, setDuration] = useState(0);
+
+  function handleTimeChange(time) {
+    setTimeSelected(time);
+    if(playerRef.current) {
+      playerRef.current.currentTime = time;
+    }
+  }
+
   async function handlePlay() {
     const video = playerRef.current;
     if (!video) return;
@@ -43,13 +56,33 @@ function VideoPlayer({ url }) {
       try {
         await video.play();
         setPlaying(true);
+        setPlayFeedback((current) => ({
+          action: "play",
+          id: (current?.id ?? 0) + 1,
+        }));
       } catch (error) {
         console.error("No se pudo iniciar la reproducción:", error);
       }
     } else {
       video.pause();
       setPlaying(false);
+      setPlayFeedback((current) => ({
+        action: "pause",
+        id: (current?.id ?? 0) + 1,
+      }));
     }
+  }
+
+  function handleLoadedMetadata(event) {
+    setDuration(event.currentTarget.duration);
+  }
+
+  function handleDurationChange(event) {
+    setDuration(event.currentTarget.duration);
+  }
+
+  function handleTimeUpdate(event) {
+    setTimeSelected(event.currentTarget.currentTime);
   }
 
   return (
@@ -63,33 +96,59 @@ function VideoPlayer({ url }) {
             selectedLevel={selectedLevel}
             onLevels={handleLevels}
             onActiveLevel={handleActiveLevel}
+            onLoadedMetadata={handleLoadedMetadata}
+            onDurationChange={handleDurationChange}
+            onTimeUpdate={handleTimeUpdate}
+            onTogglePlay={handlePlay}
           ></HlsVideoPlayer>
         ) : (
           <NativeVideoPlayer
             playerRef={playerRef}
             url={url}
+            onLoadedMetadata={handleLoadedMetadata}
+            onDurationChange={handleDurationChange}
+            onTimeUpdate={handleTimeUpdate}
+            onTogglePlay={handlePlay}
           ></NativeVideoPlayer>
+        )}
+        {playFeedback && (
+          <div
+            key={playFeedback.id}
+            className="play-feedback"
+            aria-hidden="true"
+          >
+            <i
+              className={`bi ${playFeedback.action === "play" ? "bi-play-fill" : "bi-pause-fill"}`}
+            ></i>
+          </div>
         )}
         <div
           className="player-control-overlay"
           role="group"
           aria-label="Controles del video"
         >
-          <div className="player-control-group">
-            <PlayButton playing={playing} onPlay={handlePlay}></PlayButton>
-            <SoundBar
-              soundSelected={soundSelected}
-              onSoundChange={handleSoundChange}
-            ></SoundBar>
+          <TimeBar
+            time={timeSelected}
+            onTimeChange={handleTimeChange}
+            duration={duration}
+          ></TimeBar>
+          <div className="player-control-row">
+            <div className="player-control-group">
+              <PlayButton playing={playing} onPlay={handlePlay}></PlayButton>
+              <SoundBar
+                soundSelected={soundSelected}
+                onSoundChange={handleSoundChange}
+              ></SoundBar>
+            </div>
+            {Hls.isSupported() && (
+              <QualityDropdown
+                levels={levels}
+                activeLevel={activeLevel}
+                selectedLevel={selectedLevel}
+                onSelectedLevel={handleQualitySelected}
+              ></QualityDropdown>
+            )}
           </div>
-          {Hls.isSupported() && (
-            <QualityDropdown
-              levels={levels}
-              activeLevel={activeLevel}
-              selectedLevel={selectedLevel}
-              onSelectedLevel={handleQualitySelected}
-            ></QualityDropdown>
-          )}
         </div>
       </div>
     </section>

@@ -7,7 +7,11 @@ function HlsVideoPlayer({
   playerRef,
   onLevels,
   onActiveLevel,
-  selectedLevel
+  selectedLevel,
+  onLoadedMetadata,
+  onDurationChange,
+  onTimeUpdate,
+  onTogglePlay
 }) {
   const hlsRef = useRef(null);
 
@@ -52,7 +56,15 @@ function HlsVideoPlayer({
     }
   }, [selectedLevel]);
 
-  return <video ref={playerRef} className="player-video" playsInline></video>;
+  return <video 
+    ref={playerRef} 
+    className="player-video" 
+    playsInline
+    onLoadedMetadata={onLoadedMetadata}
+    onDurationChange={onDurationChange}
+    onTimeUpdate={onTimeUpdate}
+    onClick={onTogglePlay}
+    ></video>;
 }
 
 export default HlsVideoPlayer;
